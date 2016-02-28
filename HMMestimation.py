@@ -104,7 +104,45 @@ for i in files:
     for k, v in loadseq(i).items():
         trainingdata[k] = v
 
-print trainingdata
+#print trainingdata
+
+#priori values 
+priori = []
+for values in trainingdata.values():
+    priori.append(values[1][0])
+    #print len(set(values[0]))
+
+priori = ''.join(priori)
+i = priori.count('o')/float(len(priori))
+o = priori.count('i')/float(len(priori))
+print i+o
+pi = [i, 0, o] # i M o
+
+row = {'i': 0, 'M': 1, 'o': 2}
+col = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
+# emissions: I M O
+emission = [[0 for j in range(20)] for i in range(3)]
+print emission 
+for values in trainingdata.values():
+    for o, s in zip(values[0], values[1]): #hidden states
+        emission[row[s]][col[o]] += 1
+print emission 
+
+tot = 0
+for l in emission:
+    for j in l:
+        tot = tot + j
+emission = map(lambda x: map(lambda y: y/float(tot),x) , emission)
+
+# transitions
+t = 0
+transition = [[0 for j in range(3)] for i in range(3)]
+for values in trainingdata.values():
+    for h in range(len(values[1])-1):
+       transition[row[values[1][h]]][row[values[1][h+1]]] += 1
+       t += 1
+
+transition = map(lambda x: map(lambda y: y/float(t),x) , transition)
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
