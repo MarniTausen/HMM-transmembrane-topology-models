@@ -94,12 +94,17 @@ def loglikelihood(seqpair, HMM):
 
     return result
 
-# Loading the hidden markov model data.
-hmm = loadHMM("hmm-tm.txt")
+files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
+         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
+         "Dataset160/set160.8.labels.txt"]
 
-# Loading the sequence data.
-sequences = readFasta("sequences-project2.txt")
+trainingdata = {}
 
+for i in files:
+    for k, v in loadseq(i).items():
+        trainingdata[k] = v
+
+print trainingdata
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
