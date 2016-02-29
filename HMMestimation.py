@@ -22,8 +22,8 @@ class HMMObject(object):
             self.trans = matrix(self.makenested(self.d['transitions'], 3))
             self.emi = matrix(self.makenested(self.d['emissions'], 3))
         else:
-            self.trans = matrix(self.d['transitions'])
-            self.emi = matrix(self.d['emissions'])
+            self.trans = matrix(self.d['transitions'], dtype="float")
+            self.emi = matrix(self.d['emissions'], dtype="float")
 
     def __str__(self):
         output = "Hidden Markov Model \n\n"
@@ -280,7 +280,7 @@ for i in range(0,3):
     summ = np.sum(hmm.trans[:,i])   
     print hmm.trans[:,i]/float(summ)
     hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
-#print hmm.trans
+print hmm.trans
 
 # Normalizing emis by row
 for i in range(0,3):
