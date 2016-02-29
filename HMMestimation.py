@@ -170,7 +170,7 @@ sequences = {}
 for i in files:
     for k, v in loadseq(i).items():
         trainingdata[k] = v
-        sequences[k] = v # To be used in the Viterbi algorithm 
+        sequences[k] = v[0] # To be used in the Viterbi algorithm 
 
 
 #priori values 
@@ -279,7 +279,7 @@ print trans4
 print emis4
 
 d2 = {}
-d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F','I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T','W', 'V'] 
+d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
 d2['hidden'] = ['i', 'M', 'o']
 d2['pi'] = pi
 d2['transitions'] = transition
@@ -290,8 +290,8 @@ print hmm
 
 print sequences
 
-for k, v in sequences.items():
-    print Viterbi(v, hmm)
+for k in sequences:
+    print Viterbi(sequences[k], hmm)
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
