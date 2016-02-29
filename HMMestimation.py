@@ -288,19 +288,25 @@ hmm = HMMObject(d2, True)
 
 # Normalizing trans by col
 for i in range(0,3):
-    summ = np.max(hmm.trans[:,i])    
+    summ = np.sum(hmm.trans[:,i])    
     hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
 print hmm.trans
 
 # Normalizing emis by row
 for i in range(0,3):
-    summ = np.max(hmm.emi[i,:])    
+    summ = np.sum(hmm.emi[i,:])    
     hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
 print hmm.emi
 
-print hmm
+output = str()
 for k in sequences:
-    print Viterbi(sequences[k], hmm)
+    temp_viterbi = Viterbi(sequences[k], hmm) 
+    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, sequences[k], temp_viterbi, loglikelihood((sequences[k], temp_viterbi), hmm))
+file = open('output_viterbi.txt', "w")
+file.write(output)
+file.close()
+# Comparing - validation approach for 1 set of the data
+ # python compare_tm_pred.py set160.0.labels.txt output_viterbi.txt 
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
