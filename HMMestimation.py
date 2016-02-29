@@ -280,7 +280,6 @@ print hmm
 # Normalizing trans by col
 for i in range(0,3):
     summ = np.sum(hmm.trans[:,i])   
-    print hmm.trans[:,i]/float(summ)
     hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
 #print hmm.trans
 
@@ -320,6 +319,27 @@ file.close()
 import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
+
+
+d3 = {}
+d3['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+d3['hidden'] = ['i', 'M', 'o', 'M']
+d3['pi'] = pi
+d3['transitions'] = trans4
+d3['emissions'] = emis4
+hmm4 = HMMObject(d3, True)
+
+for i in range(0,4):
+    summ = np.sum(hmm4.trans[:,i])   
+    hmm4.trans[:,i] = hmm4.trans[:,i]/float(summ)
+#print hmm.trans
+
+# Normalizing emis by row
+for i in range(0,4):
+    summ = np.sum(hmm4.emi[i,:])    
+    hmm4.emi[i,:] = hmm4.emi[i,:]/float(summ)
+
+print hmm4
 
 # Comparing - validation approach for 1 set of the data
  # python compare_tm_pred.py set160.0.labels.txt output_viterbi.txt 
