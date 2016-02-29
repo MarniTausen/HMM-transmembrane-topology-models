@@ -320,11 +320,10 @@ import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
 
-
 d3 = {}
 d3['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
-d3['hidden'] = ['i', 'M', 'o', 'M']
-d3['pi'] = pi
+d3['hidden'] = ['i', 'iM', 'o', 'oM']
+d3['pi'] = pi+[0]
 d3['transitions'] = trans4
 d3['emissions'] = emis4
 hmm4 = HMMObject(d3, True)
@@ -339,7 +338,23 @@ for i in range(0,4):
     summ = np.sum(hmm4.emi[i,:])    
     hmm4.emi[i,:] = hmm4.emi[i,:]/float(summ)
 
+hmm4.emi = velog(hmm4.emi)
+hmm4.trans = velog(hmm4.trans)
+hmm4.pi = velog(hmm4.pi)
+
 print hmm4
+
+print hmm4.obs
+
+for k in set9:
+    temp_viterbi = Viterbi(set9[k][0], hmm4)
+    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], temp_viterbi, 0)
+file = open('output_set9_hmm4.txt', "w")
+file.write(output)
+file.close()
+
+os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
+
 
 # Comparing - validation approach for 1 set of the data
  # python compare_tm_pred.py set160.0.labels.txt output_viterbi.txt 
