@@ -94,17 +94,66 @@ def loglikelihood(seqpair, HMM):
 
     return result
 
+def Viterbi(seq, hmm):
+    # Initialize the omega table
+    N = len(seq)
+    M = np.zeros((len(hmm.states), N))
+    M.fill(float("-inf"))
+
+    # Fill in the first column.
+    for k in hmm.states.values():
+        M[k,0] = hmm.pi[k]+hmm.emi[k,hmm.obs[seq[0]]]
+
+    # Fill in the remaining columns in the table.
+    n = 1
+    for i in seq[1:]:
+        o = hmm.obs[i]
+        for k in hmm.states.values():
+            if hmm.emi[k,o]!=float("-inf"):
+                for j in hmm.states.values():
+                    if hmm.trans[j,k]!=float("-inf"):
+                        M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
+        n += 1
+
+    # Backtracking:
+    z = ['' for i in range(len(seq))]
+
+    # Find the last max:
+    z[N-1] = hmm.states.keys()[M[:,N-1].argmax()]
+    for n in range(N-1)[::-1]:
+        z[n] = hmm.states.keys()[M[:,n].argmax()]
+
+    z = ["o" if i=="i" else i for i in z]
+
+    #Backtrack.
+    for n in range(N-1)[::-1]:
+        temp = np.array([float("-inf") for i in range(len(hmm.states))])
+        o, ns = hmm.obs[seq[n+1]], hmm.states[z[n+1]]
+        for i in hmm.states.values():
+            temp[i] = hmm.emi[i,o]+M[i,n]+hmm.trans[i, ns]
+        z[n] = hmm.states.keys()[temp.argmax()]
+        #print
+
+    return "".join(z)
+
+# Printing out the hidden states + observations + loglikehood
+print 'Viterbi decoding output' 
+#for key in sorted(sequences):
+ #   temp_viterbi = Viterbi(sequences[key], hmm)
+  #  print'>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_viterbi, loglikelihood((sequences[key], temp_viterbi), hmm))
+
+
 files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
          "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
          "Dataset160/set160.8.labels.txt"]
 
 trainingdata = {}
-
+sequences = {}
 for i in files:
     for k, v in loadseq(i).items():
         trainingdata[k] = v
+        sequences[k] = v[0] # To be used in the Viterbi algorithm 
 
-#print trainingdata
 
 #priori values 
 priori = []
@@ -130,9 +179,6 @@ for values in trainingdata.values():
         tot += 1
 emission = map(lambda x: map(lambda y: y/float(tot),x) , emission)
 
-print 'training by counting emissions 3 states'
-print emission 
-
 # transitions
 row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
 t = 0
@@ -143,9 +189,10 @@ for values in trainingdata.values():
        t += 1
 
 transition = map(lambda x: map(lambda y: y/float(t),x) , transition)
-print 'training by counting transitions 3 states \n'
+print '\nModel 1: \n'
+print pi
 print transition
-
+print emission
 ###########
 # Training by counting for 4 states module 
 t = 0
@@ -178,8 +225,7 @@ for values in trainingdata.values():
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
         t += 1
 trans4 = map(lambda x: map(lambda y: y/float(t),x) , trans4)
-print 'training by counting transitions 4 states\n'
-print trans4
+
 
 # emissions for 4 statements:
 # emissions: I M O
@@ -209,8 +255,20 @@ for i in range(len(em)-1):
         emis4[row[em[i][1]]][col[em[i][0]]] += 1
     t += 1
 emis4 = map(lambda x: map(lambda y: y/float(t),x) , emis4)
-print 'training by counting emissions 4 states \n'
-print emis4 
+print '\nModel 2 - 4 states: \n'
+print pi
+print trans4
+print emis4
+
+d2 = {}
+d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F','I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T','W', 'V'] 
+d2['hidden'] = ['i', 'M', 'o']
+d2['pi'] = pi
+d2['transitions'] = trans4
+d2['emissions'] = emis4
+hmm = HMMObject(d2)
+
+print Viterbi(sequences, hmm)
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
