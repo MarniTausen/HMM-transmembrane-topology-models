@@ -286,10 +286,19 @@ d2['transitions'] = transition
 d2['emissions'] = emission
 hmm = HMMObject(d2, True)
 
+# Normalizing trans by col
+for i in range(0,3):
+    summ = np.max(hmm.trans[:,i])    
+    hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
+print hmm.trans
+
+# Normalizing emis by row
+for i in range(0,3):
+    summ = np.max(hmm.emi[i,:])    
+    hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
+print hmm.emi
+
 print hmm
-
-print sequences
-
 for k in sequences:
     print Viterbi(sequences[k], hmm)
 
