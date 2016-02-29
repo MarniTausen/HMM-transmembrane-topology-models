@@ -154,6 +154,10 @@ def Viterbi(seq, hmm):
         z[n] = hmm.states.keys()[temp.argmax()]
         #print
 
+    for i in range(len(z)):
+        if z[i]=="oM" or z[i]=="iM":
+            z[i] = "M"
+        
     return "".join(z)
 
 # Printing out the hidden states + observations + loglikehood
