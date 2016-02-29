@@ -135,8 +135,9 @@ for l in emission:
 emission = map(lambda x: map(lambda y: y/float(tot),x) , emission)
 
 # transitions
+row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
 t = 0
-transition = [[0 for j in range(3)] for i in range(3)]
+transition = [[0 for j in range(4)] for i in range(4)]
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
        transition[row[values[1][h]]][row[values[1][h+1]]] += 1
@@ -144,6 +145,24 @@ for values in trainingdata.values():
 
 transition = map(lambda x: map(lambda y: y/float(t),x) , transition)
 
+###########
+# Training by counting for 4 states module 
+t = 0
+trans4 = [[0 for j in range(3)] for i in range(4)]
+for values in trainingdata.values():
+    for h in range(len(values[1])-1):
+        # from i to M
+        if row[values[1][h]] == 0 and row[values[1][h+1]] == 1:
+            trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
+        # from o to M
+        if row[values[1][h]] == 2 and row[values[1][h+1]] == 1:
+            trans4[3][1] += 1
+        else:
+            trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
+        t += 1
+print trans4
+
+# we need to take into account the M followed by M, when is in each 4 statement
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
 ## Count each occurance of observation and hidden state, through all of the training data specified.
