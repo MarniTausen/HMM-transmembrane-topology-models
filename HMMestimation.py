@@ -309,6 +309,8 @@ file.close()
 
 set9 = loadseq("Dataset160/set160.9.labels.txt")
 
+output = ""
+
 for k in set9:
     temp_viterbi = Viterbi(set9[k][0], hmm)
     output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], temp_viterbi, loglikelihood((set9[k][0], temp_viterbi), hmm))
@@ -345,6 +347,8 @@ hmm4.pi = velog(hmm4.pi)
 print hmm4
 
 print hmm4.obs
+
+output = ""
 
 for k in set9:
     temp_viterbi = Viterbi(set9[k][0], hmm4)
