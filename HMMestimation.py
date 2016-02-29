@@ -34,9 +34,11 @@ class HMMObject(object):
         output += "Pi: \n"
         output += " ".join([str(i) for i in self.pi])+"\n\n"
         output += "Transitions: \n"
-        output += "%r \n\n" % self.trans
-        output += "Emissions: \n"
-        output += "%r \n\n" % self.emi
+        for i in range(self.trans.shape[1]):
+            output += " ".join(["%.5f" % float(j) for j in self.trans[:,i]])+"\n"
+        output += "\nEmissions: \n"
+        for i in range(self.emi.shape[0]):
+            output += " ".join(["%.5f" % float(j) for j in np.nditer(self.emi[i,:])])+"\n"
         return output
         
     # Function splits a list into a nested list, into r parts. (r meaning rows)
@@ -280,13 +282,15 @@ for i in range(0,3):
     summ = np.sum(hmm.trans[:,i])   
     print hmm.trans[:,i]/float(summ)
     hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
-print hmm.trans
+#print hmm.trans
 
 # Normalizing emis by row
 for i in range(0,3):
     summ = np.sum(hmm.emi[i,:])    
     hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
-print hmm.emi
+#print hmm.emi
+
+print hmm
 
 output = str()
 for k in sequences:
