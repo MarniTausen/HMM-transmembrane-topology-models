@@ -123,16 +123,15 @@ col = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, '
 # emissions: I M O
 emission = [[0 for j in range(20)] for i in range(3)]
 print emission 
+tot = 0
 for values in trainingdata.values():
     for o, s in zip(values[0], values[1]): #hidden states
         emission[row[s]][col[o]] += 1
-print emission 
-
-tot = 0
-for l in emission:
-    for j in l:
-        tot = tot + j
+        tot += 1
 emission = map(lambda x: map(lambda y: y/float(tot),x) , emission)
+
+print 'training by counting emissions 3 states'
+print emission 
 
 # transitions
 row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
@@ -144,6 +143,8 @@ for values in trainingdata.values():
        t += 1
 
 transition = map(lambda x: map(lambda y: y/float(t),x) , transition)
+print 'training by counting transitions 3 states \n'
+print transition
 
 ###########
 # Training by counting for 4 states module 
@@ -177,13 +178,13 @@ for values in trainingdata.values():
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
         t += 1
 trans4 = map(lambda x: map(lambda y: y/float(t),x) , trans4)
+print 'training by counting transitions 4 states\n'
 print trans4
 
 # emissions for 4 statements:
 # emissions: I M O
 em = []
 emis4 = [[0 for j in range(20)] for i in range(4)]
-print emission 
 for values in trainingdata.values():
     for emission in zip(values[0], values[1]): 
         em.append(emission) 
@@ -208,6 +209,7 @@ for i in range(len(em)-1):
         emis4[row[em[i][1]]][col[em[i][0]]] += 1
     t += 1
 emis4 = map(lambda x: map(lambda y: y/float(t),x) , emis4)
+print 'training by counting emissions 4 states \n'
 print emis4 
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
