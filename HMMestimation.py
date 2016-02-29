@@ -176,9 +176,40 @@ for values in trainingdata.values():
         else:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
         t += 1
+trans4 = map(lambda x: map(lambda y: y/float(t),x) , trans4)
 print trans4
 
-# we need to take into account the M followed by M, when is in each 4 statement
+# emissions for 4 statements:
+# emissions: I M O
+em = []
+emis4 = [[0 for j in range(20)] for i in range(4)]
+print emission 
+for values in trainingdata.values():
+    for emission in zip(values[0], values[1]): 
+        em.append(emission) 
+for i in range(len(em)-1):
+    if em[i][1] == 'M' and em[i-1][1] == 'i':
+        emis4[1][col[em[i][0]]] += 1 
+        iM = True
+    if em[i][1] == 'M' and em[i-1][1] == 'o':
+        emis4[3][col[em[i][0]]] += 1 
+        iM = False
+    if em[i][1] == 'M' and em[i-1][1] == 'M':
+        if iM==True:
+            emis4[1][col[em[i][0]]] += 1
+        if iM==False:
+            emis4[3][col[em[i][0]]] += 1
+    if em[i][1] == 'M' and em[i-1][1] != 'M':
+        if iM==True:
+            emis4[1][col[em[i][0]]] += 1
+        if iM==False:
+            emis4[3][col[em[i][0]]] += 1
+    else:
+        emis4[row[em[i][1]]][col[em[i][0]]] += 1
+    t += 1
+emis4 = map(lambda x: map(lambda y: y/float(t),x) , emis4)
+print emis4 
+
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
 ## Count each occurance of observation and hidden state, through all of the training data specified.
@@ -198,4 +229,3 @@ print trans4
 #### 5. Redo step 3 and 4 using Posterior decoding. How does the results obtained by posterior decoding compare to the results obtained by Viterbi decoding?
 
 #### 6. Redo steps 3-5 for any other models that you find relevant, e.g. the ones we talked about in class. What is the best AC (i.e. best mean over a 10-fold experiment) that you can obtain? How does you best model look like?
-
