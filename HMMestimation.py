@@ -32,7 +32,7 @@ class HMMObject(object):
         output += "Observables: \n"
         output += " ".join([i for i in self.obs.keys()])+"\n\n"
         output += "Pi: \n"
-        output += " ".join([str(i) for i in self.pi])+"\n\n"
+        output += " ".join(["%.5f" % i for i in self.pi])+"\n\n"
         output += "Transitions: \n"
         for i in range(self.trans.shape[1]):
             output += " ".join(["%.5f" % float(j) for j in self.trans[:,i]])+"\n"
