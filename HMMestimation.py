@@ -148,17 +148,28 @@ transition = map(lambda x: map(lambda y: y/float(t),x) , transition)
 ###########
 # Training by counting for 4 states module 
 t = 0
-trans4 = [[0 for j in range(3)] for i in range(4)]
+iM = False
+trans4 = [[0 for j in range(4)] for i in range(4)]
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
         # from i to M
         if row[values[1][h]] == 0 and row[values[1][h+1]] == 1:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
+            iM = True
         # from o to M
         if row[values[1][h]] == 2 and row[values[1][h+1]] == 1:
-            trans4[3][1] += 1
-        else:
-            trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
+            trans4[2][3] += 1
+            iM = False
+        if row[values[1][h]] == 1 and row[values[1][h+1]] == 1:
+            if iM==True:
+                trans4[1][1] += 1
+            if iM==False:
+                trans4[3][3] += 1
+        if row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
+            if iM==True:
+                trans4[1][0] += 1
+            if iM==False:
+                trans4[3][2] += 1
         t += 1
 print trans4
 
