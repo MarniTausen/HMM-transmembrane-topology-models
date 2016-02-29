@@ -13,14 +13,32 @@ class HMMObject(object):
     # States and obs get converted into a dictionary with the letters as keys,
     # and the values are the corresponding indices.
     # Trans and emi get converted into a nested list, with 3 internal lists.
-    def __init__(self, hmmdict):
+    def __init__(self, hmmdict, nested=False):
         self.d = hmmdict
         self.states = {self.d['hidden'][i]:i for i in range(len(self.d['hidden']))}
         self.obs = {self.d['observables'][i]:i for i in range(len(self.d['observables']))}
         self.pi = self.d['pi']
-        self.trans = matrix(self.makenested(self.d['transitions'], 3))
-        self.emi = matrix(self.makenested(self.d['emissions'], 3))
+        if nested==False:
+            self.trans = matrix(self.makenested(self.d['transitions'], 3))
+            self.emi = matrix(self.makenested(self.d['emissions'], 3))
+        else:
+            self.trans = matrix(self.d['transitions'])
+            self.emi = matrix(self.d['emissions'])
 
+    def __str__(self):
+        output = "Hidden Markov Model \n\n"
+        output += "Hidden states: \n"
+        output += " ".join([i for i in self.states.keys()])+"\n\n"
+        output += "Observables: \n"
+        output += " ".join([i for i in self.obs.keys()])+"\n\n"
+        output += "Pi: \n"
+        output += " ".join([str(i) for i in self.pi])+"\n\n"
+        output += "Transitions: \n"
+        output += "%r \n\n" % self.trans
+        output += "Emissions: \n"
+        output += "%r \n\n" % self.emi
+        return output
+        
     # Function splits a list into a nested list, into r parts. (r meaning rows)
     def makenested(self, x, r):
         n = len(x)/r
@@ -152,7 +170,7 @@ sequences = {}
 for i in files:
     for k, v in loadseq(i).items():
         trainingdata[k] = v
-        sequences[k] = v[0] # To be used in the Viterbi algorithm 
+        sequences[k] = v # To be used in the Viterbi algorithm 
 
 
 #priori values 
@@ -182,7 +200,7 @@ emission = map(lambda x: map(lambda y: y/float(tot),x) , emission)
 # transitions
 row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
 t = 0
-transition = [[0 for j in range(4)] for i in range(4)]
+transition = [[0 for j in range(3)] for i in range(3)]
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
        transition[row[values[1][h]]][row[values[1][h+1]]] += 1
@@ -232,8 +250,8 @@ trans4 = map(lambda x: map(lambda y: y/float(t),x) , trans4)
 em = []
 emis4 = [[0 for j in range(20)] for i in range(4)]
 for values in trainingdata.values():
-    for emission in zip(values[0], values[1]): 
-        em.append(emission) 
+    for j in zip(values[0], values[1]): 
+        em.append(j) 
 for i in range(len(em)-1):
     if em[i][1] == 'M' and em[i-1][1] == 'i':
         emis4[1][col[em[i][0]]] += 1 
@@ -264,11 +282,16 @@ d2 = {}
 d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F','I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T','W', 'V'] 
 d2['hidden'] = ['i', 'M', 'o']
 d2['pi'] = pi
-d2['transitions'] = trans4
-d2['emissions'] = emis4
-hmm = HMMObject(d2)
+d2['transitions'] = transition
+d2['emissions'] = emission
+hmm = HMMObject(d2, True)
 
-print Viterbi(sequences, hmm)
+print hmm
+
+print sequences
+
+for k, v in sequences.items():
+    print Viterbi(v, hmm)
 
 #### 1. Train the 3-state model (iMo) on parts 0-8 of the training data using training-by-counting.
 
