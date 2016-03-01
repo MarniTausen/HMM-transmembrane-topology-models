@@ -42,7 +42,6 @@ def eexp(x):
         return 0
     return exp(x)
 
-
 # Loading the hidden markov model (hmm) data.
 # First by splitting the for each of the names.
 # Then collecting all of the data with the right labels in a dictionary.
@@ -133,13 +132,13 @@ def Viterbi(seq, hmm):
     z[N-1] = hmm.states.keys()[M[:,N-1].argmax()]
 
     #Backtrack.
-    for n in range(N-1)[::-1]:
-        temp = np.array([float("-inf") for i in range(len(hmm.states))])
-        o, ns = hmm.obs[seq[n]], hmm.states[z[n+1]]
-        for i in hmm.states.values():
-            temp[i] = hmm.emi[i,o]+M[i,n]+hmm.trans[i, ns]
-        z[n] = hmm.states.keys()[temp.argmax()]
-
+    for n in range(N-1)[::-1]:)
+        o, ns = hmm.obs[seq[n+1]], hmm.states[z[n+1]]
+        for k in hmm.states.values():
+            if M[k,n]+hmm.emi[ns,o]+hmm.trans[k, ns] == M[ns, n+1]:
+                z[n] = hmm.states.keys()[k]
+                break
+    
     return "".join(z)
 
 # Printing out the hidden states + observations + loglikehood
