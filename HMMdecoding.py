@@ -9,11 +9,13 @@ class HMMObject(object):
     Contains the following variables: states (latent states), obs (observables),
     pi (priori probabilities), trans (transition probabilities), emi (emission probabilities)"""
 
+    mapped = False
+    
     # Initialization of object, preparing all of the datatypes.
     # States and obs get converted into a dictionary with the letters as keys,
     # and the values are the corresponding indices.
     # Trans and emi get converted into a nested list, with 3 internal lists.
-    def __init__(self, hmmdict, nested=False):
+    def __init__(self, hmmdict, nested=False, mapper={}):
         self.d = hmmdict
         self.states = {self.d['hidden'][i]:i for i in range(len(self.d['hidden']))}
         self.obs = {self.d['observables'][i]:i for i in range(len(self.d['observables']))}
@@ -24,6 +26,9 @@ class HMMObject(object):
         else:
             self.trans = matrix(self.d['transitions'], dtype="float")
             self.emi = matrix(self.d['emissions'], dtype="float")
+        if mapper!={}:
+            mapped = True
+            self.mapper = mapper
 
     def __str__(self):
         output = "Hidden Markov Model \n\n"

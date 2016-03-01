@@ -170,13 +170,13 @@ import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
 
-d3 = {}
-d3['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
-d3['hidden'] = ['0', '1', '2', '3']
-d3['pi'] = pi+[0]
-d3['transitions'] = trans4
-d3['emissions'] = emis4
-hmm4 = HMMObject(d3, True)
+d4 = {}
+d4['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+d4['hidden'] = ['0', '1', '2', '3']
+d4['pi'] = pi+[0]
+d4['transitions'] = trans4
+d4['emissions'] = emis4
+hmm4 = HMMObject(d4, True, {'0': 'i', '1': 'M', '2': 'o', '3': 'M'})
 
 print hmm4
 
@@ -198,11 +198,21 @@ hmm4.pi = velog(hmm4.pi)
 
 print hmm4
 
+print hmm4.trans
+
 output = ""
+
+def convertback(z, hmm):
+    r = ""
+    for i in z:
+        r += hmm.mapper[i]
+    return r
 
 for k in set9:
     temp_viterbi = Viterbi(set9[k][0], hmm4)
-    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], temp_viterbi, 0)
+    print temp_viterbi
+    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], convertback(temp_viterbi, hmm4),
+                                                         loglikelihood((set9[k][0], temp_viterbi), hmm4))
 file = open('output_set9_hmm4.txt', "w")
 file.write(output)
 file.close()
