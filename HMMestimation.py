@@ -157,7 +157,7 @@ def Viterbi(seq, hmm):
     for i in range(len(z)):
         if z[i]=="oM" or z[i]=="iM":
             z[i] = "M"
-        
+
     return "".join(z)
 
 # Printing out the hidden states + observations + loglikehood
@@ -234,13 +234,16 @@ for values in trainingdata.values():
         # M to i or o
         elif row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
             if iM==True:
-                trans4[1][0] += 1
+                trans4[1][2] += 1
             if iM==False:
-                trans4[3][2] += 1
+                trans4[3][0] += 1
         # i to i and o to o
         else:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
 
+print '\nTransmission for 4 state model'
+for i in trans4:
+    print i
 # emissions for 4 statements:
 # emissions: I M O
 em = []
@@ -334,9 +337,13 @@ d3['transitions'] = trans4
 d3['emissions'] = emis4
 hmm4 = HMMObject(d3, True)
 
+print matrix(trans4, byrow=True)
+
+print hmm4
+
 for i in range(0,4):
-    summ = np.sum(hmm4.trans[:,i])   
-    hmm4.trans[:,i] = hmm4.trans[:,i]/float(summ)
+    summ = np.sum(hmm4.trans[i,:])   
+    hmm4.trans[i,:] = hmm4.trans[i,:]/float(summ)
 #print hmm.trans
 
 # Normalizing emis by row
@@ -344,13 +351,13 @@ for i in range(0,4):
     summ = np.sum(hmm4.emi[i,:])    
     hmm4.emi[i,:] = hmm4.emi[i,:]/float(summ)
 
+print hmm4
+    
 hmm4.emi = velog(hmm4.emi)
 hmm4.trans = velog(hmm4.trans)
 hmm4.pi = velog(hmm4.pi)
 
 print hmm4
-
-print hmm4.obs
 
 output = ""
 
@@ -361,7 +368,7 @@ file = open('output_set9_hmm4.txt', "w")
 file.write(output)
 file.close()
 
-os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
+#os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
 
 
 # Comparing - validation approach for 1 set of the data
