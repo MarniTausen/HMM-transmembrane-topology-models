@@ -35,7 +35,7 @@ class HMMObject(object):
         output += " ".join(["%.5f" % i for i in self.pi])+"\n\n"
         output += "Transitions: \n"
         for i in range(self.trans.shape[1]):
-            output += " ".join(["%.5f" % float(j) for j in self.trans[:,i]])+"\n"
+            output += " ".join(["%.5f" % float(j) for j in np.nditer(self.trans[i,:])])+"\n"
         output += "\nEmissions: \n"
         for i in range(self.emi.shape[0]):
             output += " ".join(["%.5f" % float(j) for j in np.nditer(self.emi[i,:])])+"\n"
@@ -219,11 +219,11 @@ for values in trainingdata.values():
     for h in range(len(values[1])-1):
         # from i to M
         if row[values[1][h]] == 0 and row[values[1][h+1]] == 1:
-            trans4[1][0] += 1
+            trans4[0][1] += 1
             iM = True
         # from o to M
         elif row[values[1][h]] == 2 and row[values[1][h+1]] == 1:
-            trans4[3][2] += 1
+            trans4[2][3] += 1
             iM = False
         # M to M
         elif row[values[1][h]] == 1 and row[values[1][h+1]] == 1:
@@ -234,9 +234,9 @@ for values in trainingdata.values():
         # M to i or o
         elif row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
             if iM==True:
-                trans4[2][1] += 1
+                trans4[1][2] += 1
             if iM==False:
-                trans4[0][3] += 1
+                trans4[3][0] += 1
         # i to i and o to o
         else:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1

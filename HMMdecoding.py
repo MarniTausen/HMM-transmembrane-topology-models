@@ -36,6 +36,13 @@ def elog(x):
         return float("-inf")
     return log(x)
 
+def eexp(x):
+    from math import exp
+    if x == float("-inf"):
+        return 0
+    return exp(x)
+
+
 # Loading the hidden markov model (hmm) data.
 # First by splitting the for each of the names.
 # Then collecting all of the data with the right labels in a dictionary.
@@ -111,34 +118,27 @@ def Viterbi(seq, hmm):
         M[k,0] = hmm.pi[k]+hmm.emi[k,hmm.obs[seq[0]]]
 
     # Fill in the remaining columns in the table.
-    n = 1
-    for i in seq[1:]:
-        o = hmm.obs[i]
+    for n in range(1, N):
+        o = hmm.obs[seq[n]]
         for k in hmm.states.values():
             if hmm.emi[k,o]!=float("-inf"):
                 for j in hmm.states.values():
                     if hmm.trans[j,k]!=float("-inf"):
                         M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
-        n += 1
 
     # Backtracking:
     z = ['' for i in range(len(seq))]
 
     # Find the last max:
     z[N-1] = hmm.states.keys()[M[:,N-1].argmax()]
-    for n in range(N-1)[::-1]:
-        z[n] = hmm.states.keys()[M[:,n].argmax()]
-
-    z = ["o" if i=="i" else i for i in z]
 
     #Backtrack.
     for n in range(N-1)[::-1]:
         temp = np.array([float("-inf") for i in range(len(hmm.states))])
-        o, ns = hmm.obs[seq[n+1]], hmm.states[z[n+1]]
+        o, ns = hmm.obs[seq[n]], hmm.states[z[n+1]]
         for i in hmm.states.values():
             temp[i] = hmm.emi[i,o]+M[i,n]+hmm.trans[i, ns]
         z[n] = hmm.states.keys()[temp.argmax()]
-        #print
 
     return "".join(z)
 
@@ -190,9 +190,9 @@ def LOGSUM(x, y): #the input is already log transformed
     if y == float("-inf"):
         return x
     if x > y:
-        return x + elog(1 + 2**(y - x))
+        return x + elog(1 + eexp(y - x))
     else:
-        return y + elog(1 + 2**(x - y))
+        return y + elog(1 + eexp(x - y))
 
 def Posterior(seq, hmm):
     # Initializing the tables
