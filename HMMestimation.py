@@ -214,47 +214,42 @@ print emission
 ###########
 # Training by counting for 4 states module: changing the characters
 iM = False
+
 mapping = []
 trans4 = [[0 for j in range(4)] for i in range(4)]
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
         # from i to M
         if values[1][h] == 'i' and values[1][h+1] == 'M':
-            mapping.append('i')
-            mapping.append(1)
-            trans4[0][1] += 1
+            mapping.append(0)
             iM = True
         # from o to M
         elif values[1][h] == 'o' and values[1][h+1] == 'M':
-            mapping.append('o')
-            mapping.append(3)
-            trans4[2][3] += 1
+            mapping.append(2)
             iM = False
         # M to M
         elif values[1][h] == 'M' and values[1][h+1] == 'M':
             if iM==True:
                 mapping.append(1)
-                trans4[1][1] += 1
             if iM==False:
-                trans4[3][3] += 1
                 mapping.append(3)
         # M to i or o
-        elif row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
+        elif values[1][h] == 'M' and row[values[1][h+1]] != 'M':
             if iM==True:
-                trans4[1][2] += 1
                 mapping.append(1)
             if iM==False:
-                trans4[3][0] += 1
                 mapping.append(3)
         # i to i and o to o
         else:
-            trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
             mapping.append(values[1][h])
-print mapping
+        y = (values[1][h])
 
-print '\nTransmission for 4 state model'
-for i in trans4:
-    print i
+print mapping[:700]
+print trainingdata['MAGL_MOUSE']
+print trainingdata['CVAA_ECOLI']
+#print '\nTransmission for 4 state model'
+#for i in trans4:
+  #  print i
 # emissions for 4 statements:
 # emissions: I M O
 em = []
@@ -262,25 +257,8 @@ emis4 = [[0 for j in range(20)] for i in range(4)]
 for values in trainingdata.values():
     for j in zip(values[0], values[1]): 
         em.append(j) 
-for i in range(len(em)-1):
-    if em[i][1] == 'M' and em[i-1][1] == 'i':
-        emis4[1][col[em[i][0]]] += 1 
-        iM = True
-    if em[i][1] == 'M' and em[i-1][1] == 'o':
-        emis4[3][col[em[i][0]]] += 1 
-        iM = False
-    if em[i][1] == 'M' and em[i-1][1] == 'M':
-        if iM==True:
-            emis4[1][col[em[i][0]]] += 1
-        if iM==False:
-            emis4[3][col[em[i][0]]] += 1
-    if em[i][1] == 'M' and em[i-1][1] != 'M':
-        if iM==True:
-            emis4[1][col[em[i][0]]] += 1
-        if iM==False:
-            emis4[3][col[em[i][0]]] += 1
-    else:
-        emis4[row[em[i][1]]][col[em[i][0]]] += 1
+#for i in range(len(em)-1):
+#    emis4[em[i][1]][col[em[i][0]]] += 1 
 
 print '\nModel 2 - 4 states: \n'
 print pi
