@@ -219,11 +219,11 @@ for values in trainingdata.values():
     for h in range(len(values[1])-1):
         # from i to M
         if row[values[1][h]] == 0 and row[values[1][h+1]] == 1:
-            trans4[0][1] += 1
+            trans4[1][0] += 1
             iM = True
         # from o to M
         elif row[values[1][h]] == 2 and row[values[1][h+1]] == 1:
-            trans4[2][3] += 1
+            trans4[3][2] += 1
             iM = False
         # M to M
         elif row[values[1][h]] == 1 and row[values[1][h+1]] == 1:
@@ -234,9 +234,9 @@ for values in trainingdata.values():
         # M to i or o
         elif row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
             if iM==True:
-                trans4[1][2] += 1
+                trans4[2][1] += 1
             if iM==False:
-                trans4[3][0] += 1
+                trans4[0][3] += 1
         # i to i and o to o
         else:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
@@ -337,8 +337,6 @@ d3['transitions'] = trans4
 d3['emissions'] = emis4
 hmm4 = HMMObject(d3, True)
 
-print matrix(trans4, byrow=True)
-
 print hmm4
 
 for i in range(0,4):
@@ -368,7 +366,7 @@ file = open('output_set9_hmm4.txt', "w")
 file.write(output)
 file.close()
 
-#os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
+os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
 
 
 # Comparing - validation approach for 1 set of the data
