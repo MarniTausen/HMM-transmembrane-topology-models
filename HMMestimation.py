@@ -198,12 +198,6 @@ hmm4.pi = velog(hmm4.pi)
 
 print hmm4
 
-print hmm4.states
-print hmm4.obs
-print hmm4.emi
-print hmm4.trans
-print hmm4.pi
-
 output = ""
 
 def convertback(z, hmm):

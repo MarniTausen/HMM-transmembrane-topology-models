@@ -147,8 +147,6 @@ def Viterbi(seq, hmm):
                 for j in hmm.states.values():
                     if hmm.trans[j,k]!=float("-inf"):
                         M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
-
-    print M[:,N-1].max()
     
     # Backtracking:
     z = ['' for i in range(len(seq))]
