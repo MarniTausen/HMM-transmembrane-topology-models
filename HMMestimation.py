@@ -127,8 +127,8 @@ hmm = HMMObject(d2, True)
 print hmm
 # Normalizing trans by col
 for i in range(0,3):
-    summ = np.sum(hmm.trans[:,i])   
-    hmm.trans[:,i] = hmm.trans[:,i]/float(summ)
+    summ = np.sum(hmm.trans[i,:])   
+    hmm.trans[i,:] = hmm.trans[i,:]/float(summ)
 #print hmm.trans
 
 # Normalizing emis by row
@@ -198,7 +198,11 @@ hmm4.pi = velog(hmm4.pi)
 
 print hmm4
 
-print hmm4.states.values()
+print hmm4.states
+print hmm4.obs
+print hmm4.emi
+print hmm4.trans
+print hmm4.pi
 
 output = ""
 
@@ -209,7 +213,7 @@ def convertback(z, hmm):
     return r
 
 for k in set9:
-    temp_viterbi = Viterbi(set9[k][0], hmm4)
+    temp_viterbi = Posterior(set9[k][0], hmm4)
     output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], convertback(temp_viterbi, hmm4),
                                                          loglikelihood((set9[k][0], temp_viterbi), hmm4))
 file = open('output_set9_hmm4.txt', "w")
