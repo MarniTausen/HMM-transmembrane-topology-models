@@ -60,7 +60,7 @@ iM = False
 
 themap = {'i': '0', 'o': '2'}
 
-print trainingdata['MAGL_MOUSE'][1]
+print trainingdata['5H2A_CRIGR'][1]
 
 trans4 = [[0 for j in range(4)] for i in range(4)]
 for keys, values in trainingdata.items():
@@ -91,7 +91,7 @@ for keys, values in trainingdata.items():
             mapping.append(themap[values[1][h]])
     trainingdata[keys] = (values[0], "".join(mapping))
 
-print trainingdata['MAGL_MOUSE'][1]
+print trainingdata['5H2A_CRIGR'][1]
 
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
@@ -198,7 +198,7 @@ hmm4.pi = velog(hmm4.pi)
 
 print hmm4
 
-print hmm4.trans
+print hmm4.states.values()
 
 output = ""
 
@@ -210,7 +210,6 @@ def convertback(z, hmm):
 
 for k in set9:
     temp_viterbi = Viterbi(set9[k][0], hmm4)
-    print temp_viterbi
     output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], convertback(temp_viterbi, hmm4),
                                                          loglikelihood((set9[k][0], temp_viterbi), hmm4))
 file = open('output_set9_hmm4.txt', "w")

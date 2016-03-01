@@ -27,13 +27,16 @@ class HMMObject(object):
             self.trans = matrix(self.d['transitions'], dtype="float")
             self.emi = matrix(self.d['emissions'], dtype="float")
         if mapper!={}:
-            mapped = True
+            self.mapped = True
             self.mapper = mapper
 
     def __str__(self):
         output = "Hidden Markov Model \n\n"
         output += "Hidden states: \n"
-        output += " ".join([i for i in self.states.keys()])+"\n\n"
+        if self.mapped==True:
+            output += " ".join([i+"("+self.mapper[i]+")" for i in self.states.keys()])+"\n\n"
+        else:
+            output += " ".join([i for i in self.states.keys()])+"\n\n"
         output += "Observables: \n"
         output += " ".join([i for i in self.obs.keys()])+"\n\n"
         output += "Pi: \n"
