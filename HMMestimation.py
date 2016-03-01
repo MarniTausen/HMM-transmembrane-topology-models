@@ -212,34 +212,45 @@ print pi
 print transition
 print emission
 ###########
-# Training by counting for 4 states module 
+# Training by counting for 4 states module: changing the characters
 iM = False
+mapping = []
 trans4 = [[0 for j in range(4)] for i in range(4)]
 for values in trainingdata.values():
     for h in range(len(values[1])-1):
         # from i to M
-        if row[values[1][h]] == 0 and row[values[1][h+1]] == 1:
+        if values[1][h] == 'i' and values[1][h+1] == 'M':
+            mapping.append('i')
+            mapping.append(1)
             trans4[0][1] += 1
             iM = True
         # from o to M
-        elif row[values[1][h]] == 2 and row[values[1][h+1]] == 1:
+        elif values[1][h] == 'o' and values[1][h+1] == 'M':
+            mapping.append('o')
+            mapping.append(3)
             trans4[2][3] += 1
             iM = False
         # M to M
-        elif row[values[1][h]] == 1 and row[values[1][h+1]] == 1:
+        elif values[1][h] == 'M' and values[1][h+1] == 'M':
             if iM==True:
+                mapping.append(1)
                 trans4[1][1] += 1
             if iM==False:
                 trans4[3][3] += 1
+                mapping.append(3)
         # M to i or o
         elif row[values[1][h]] == 1 and row[values[1][h+1]] != 1:
             if iM==True:
                 trans4[1][2] += 1
+                mapping.append(1)
             if iM==False:
                 trans4[3][0] += 1
+                mapping.append(3)
         # i to i and o to o
         else:
             trans4[row[values[1][h]]][row[values[1][h+1]]] += 1
+            mapping.append(values[1][h])
+print mapping
 
 print '\nTransmission for 4 state model'
 for i in trans4:
