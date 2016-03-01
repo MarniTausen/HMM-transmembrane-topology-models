@@ -1,10 +1,11 @@
 from numpy import matrix
 import numpy as np
+from collections import OrderedDict
 
 # Object for storing all of the HMM (Hidden Markov Model) data inside.
 # Takes the output from loadHMM() and makes the data more accessible
 class HMMObject(object):
-
+    
     """
     Contains the following variables: states (latent states), obs (observables),
     pi (priori probabilities), trans (transition probabilities), emi (emission probabilities)"""
@@ -17,8 +18,8 @@ class HMMObject(object):
     # Trans and emi get converted into a nested list, with 3 internal lists.
     def __init__(self, hmmdict, nested=False, mapper={}):
         self.d = hmmdict
-        self.states = {self.d['hidden'][i]:i for i in range(len(self.d['hidden']))}
-        self.obs = {self.d['observables'][i]:i for i in range(len(self.d['observables']))}
+        self.states = OrderedDict([(self.d['hidden'][i],i) for i in range(len(self.d['hidden']))])
+        self.obs = OrderedDict([(self.d['observables'][i],i) for i in range(len(self.d['observables']))])
         self.pi = self.d['pi']
         if nested==False:
             self.trans = matrix(self.makenested(self.d['transitions'], 3))
@@ -135,18 +136,20 @@ def Viterbi(seq, hmm):
     M.fill(float("-inf"))
 
     # Fill in the first column.
-    for k in hmm.states.values():
+    for k in range(len(hmm.states)):
         M[k,0] = hmm.pi[k]+hmm.emi[k,hmm.obs[seq[0]]]
 
     # Fill in the remaining columns in the table.
     for n in range(1, N):
         o = hmm.obs[seq[n]]
-        for k in hmm.states.values():
+        for k in range(len(hmm.states)):
             if hmm.emi[k,o]!=float("-inf"):
                 for j in hmm.states.values():
                     if hmm.trans[j,k]!=float("-inf"):
                         M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
 
+    print M[:,N-1].max()
+    
     # Backtracking:
     z = ['' for i in range(len(seq))]
 
@@ -156,7 +159,7 @@ def Viterbi(seq, hmm):
     #Backtrack.
     for n in range(N-1)[::-1]:
         o, ns = hmm.obs[seq[n+1]], hmm.states[z[n+1]]
-        for k in hmm.states.values():
+        for k in range(len(hmm.states)):
             if M[k,n]+hmm.emi[ns,o]+hmm.trans[k, ns] == M[ns, n+1]:
                 z[n] = hmm.states.keys()[k]
                 break
