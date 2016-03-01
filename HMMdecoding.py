@@ -13,14 +13,34 @@ class HMMObject(object):
     # States and obs get converted into a dictionary with the letters as keys,
     # and the values are the corresponding indices.
     # Trans and emi get converted into a nested list, with 3 internal lists.
-    def __init__(self, hmmdict):
+    def __init__(self, hmmdict, nested=False):
         self.d = hmmdict
         self.states = {self.d['hidden'][i]:i for i in range(len(self.d['hidden']))}
         self.obs = {self.d['observables'][i]:i for i in range(len(self.d['observables']))}
         self.pi = self.d['pi']
-        self.trans = matrix(self.makenested(self.d['transitions'], 3))
-        self.emi = matrix(self.makenested(self.d['emissions'], 3))
+        if nested==False:
+            self.trans = matrix(self.makenested(self.d['transitions'], 3))
+            self.emi = matrix(self.makenested(self.d['emissions'], 3))
+        else:
+            self.trans = matrix(self.d['transitions'], dtype="float")
+            self.emi = matrix(self.d['emissions'], dtype="float")
 
+    def __str__(self):
+        output = "Hidden Markov Model \n\n"
+        output += "Hidden states: \n"
+        output += " ".join([i for i in self.states.keys()])+"\n\n"
+        output += "Observables: \n"
+        output += " ".join([i for i in self.obs.keys()])+"\n\n"
+        output += "Pi: \n"
+        output += " ".join(["%.5f" % i for i in self.pi])+"\n\n"
+        output += "Transitions: \n"
+        for i in range(self.trans.shape[1]):
+            output += " ".join(["%.5f" % float(j) for j in np.nditer(self.trans[i,:])])+"\n"
+        output += "\nEmissions: \n"
+        for i in range(self.emi.shape[0]):
+            output += " ".join(["%.5f" % float(j) for j in np.nditer(self.emi[i,:])])+"\n"
+        return output
+        
     # Function splits a list into a nested list, into r parts. (r meaning rows)
     def makenested(self, x, r):
         n = len(x)/r
@@ -28,7 +48,7 @@ class HMMObject(object):
         for i in range(r):
             result.append(x[i*n:n*(i+1)])
         return result
-
+    
 # Wrapper for the log function
 def elog(x):
     from math import log
@@ -100,12 +120,6 @@ def loglikelihood(seqpair, HMM):
 
     return result
 
-# Loading the hidden markov model data.
-hmm = loadHMM("hmm-tm.txt")
-
-# Loading the sequence data.
-sequences = readFasta("sequences-project2.txt")
-
 def Viterbi(seq, hmm):
     # Initialize the omega table
     N = len(seq)
@@ -132,7 +146,7 @@ def Viterbi(seq, hmm):
     z[N-1] = hmm.states.keys()[M[:,N-1].argmax()]
 
     #Backtrack.
-    for n in range(N-1)[::-1]:)
+    for n in range(N-1)[::-1]:
         o, ns = hmm.obs[seq[n+1]], hmm.states[z[n+1]]
         for k in hmm.states.values():
             if M[k,n]+hmm.emi[ns,o]+hmm.trans[k, ns] == M[ns, n+1]:
@@ -140,45 +154,6 @@ def Viterbi(seq, hmm):
                 break
     
     return "".join(z)
-
-# Printing out the hidden states + observations + loglikehood
-print 'Viterbi decoding output' 
-for key in sorted(sequences):
-    temp_viterbi = Viterbi(sequences[key], hmm)
-    print'>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_viterbi, loglikelihood((sequences[key], temp_viterbi), hmm))
-
-# Validating our output against the given output
-original = loadseq('sequences-project2-viterbi.txt')
-def validation(ori_seq, actual_seq, hmm, model):
-    from pandas import DataFrame as df
-    results = []
-    for key_ori, seq_log in ori_seq.items():
-        seq_ori = seq_log[0]
-        hid_ori, log_ori = seq_log[1].split(';')
-        log_ori = float(log_ori.strip().replace('log P(x,z) = ', ''))
-        hid_now = model(sequences[key_ori], hmm) #hidden states
-        dif = 0
-        for i in range(len(hid_now)):
-            if hid_now[i] != hid_ori[i]:
-                dif += 1
-        log_dif = log_ori - loglikelihood((sequences[key_ori], hid_now), hmm)
-        results.append((key_ori, dif/float(len(hid_now)), log_dif))
-
-    df = df(results)
-    df.columns = ['Protein','p-distance', 'Diff likelihood']
-    return df
-    
-print 'Validation results - Viterbi'
-print validation(original, sequences, hmm, Viterbi)
-# Saving the output into a file:
-output = str()
-for key in sorted(sequences):
-    temp_viterbi = Viterbi(sequences[key], hmm)
-    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_viterbi, loglikelihood((sequences[key], temp_viterbi), hmm))
-file = open('output_viterbi.txt', "w")
-file.write(output)
-file.close()
-
 
 ##################### Starting Posterior decoding #####################
 
@@ -237,22 +212,3 @@ def Posterior(seq, hmm):
         z[n] = hmm.states.keys()[M[:,n].argmax()]
 
     return "".join(z)
-
-original = loadseq('sequences-project2-posterior.txt')
-
-output = str()
-for key in sorted(sequences):
-    temp_post = Posterior(sequences[key], hmm)
-    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_post, loglikelihood((sequences[key], temp_post), hmm))
-file = open('output_posterior.txt', "w")
-file.write(output)
-file.close()
-
-print 'Posterior decoding output'
-# Printing out the hidden states + observations + loglikehood 
-for key in sorted(sequences):
-    temp_post = Posterior(sequences[key], hmm)
-    print '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_post, loglikelihood((sequences[key], temp_post), hmm))
-
-print 'Validation results - Posterior'
-print validation(original, sequences, hmm, Posterior)
