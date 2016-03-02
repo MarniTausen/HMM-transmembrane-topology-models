@@ -21,7 +21,7 @@ for i in files:
         trainingdata[k] = v
         sequences[k] = v[0] # To be used in the Viterbi algorithm 
 
-def countpriori(data, states):
+def countPriori(data, states):
     priori = []
     for values in data.values():
         priori.append(values[1][0])
@@ -29,121 +29,101 @@ def countpriori(data, states):
     counts = [priori.count(i)/float(len(priori)) for i in states]
     return counts
 
-pi = countpriori(trainingdata, ['i', 'M', 'o'])
-
-def countemissions(data, states, obs):
+def countEmissions(data, states, obs):
     emission = [[0 for j in range(len(obs))] for i in range(len(states))]
     for values in data.values():
         for o, s in zip(values[0], values[1]): #hidden states
-            emission[row[s]][col[o]] += 1
+            emission[states[s]][obs[o]] += 1
     return emission
 
-row = {'i': 0, 'M': 1, 'o': 2}
-col = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
+def countTransitions(data, states):
+    transition = [[0 for j in range(len(states))] for i in range(len(states))]
+    for values in data.values():
+        for h in range(len(values[1])-1):
+            transition[states[values[1][h]]][states[values[1][h+1]]] += 1
+    return transition
 
-emission = countemissions(trainingdata, row, col)
-        
-# transitions
-row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
-transition = [[0 for j in range(3)] for i in range(3)]
-for values in trainingdata.values():
-    for h in range(len(values[1])-1):
-       transition[row[values[1][h]]][row[values[1][h+1]]] += 1
-
-print '\nModel 1: \n'
-print pi
-print transition
-print emission
 ###########
 # Training by counting for 4 states module: changing the characters
-iM = False
+def map4state(data):
+    themap = {'i': '0', 'o': '2'}
+    iM = False
+    #states = {'i': 0, 'M': 1, 'o': 2}
+    for keys, values in data.items():
+        mapping = []
+        for h in range(len(values[1])):
+            # from i to M
+            if h<(len(values[1])-1):
+                if values[1][h] == 'i' and values[1][h+1] == 'M':
+                    mapping.append('0')
+                    iM = True
+                    # from o to M
+                elif values[1][h] == 'o' and values[1][h+1] == 'M':
+                    mapping.append('2')
+                    iM = False
+                    # M to M
+                elif values[1][h] == 'M' and values[1][h+1] == 'M':
+                    if iM==True:
+                        mapping.append('1')
+                    if iM==False:
+                        mapping.append('3')
+                        # M to i or o
+                elif values[1][h] == 'M' and values[1][h+1] != 'M':
+                    if iM==True:
+                        mapping.append('1')
+                    if iM==False:
+                        mapping.append('3')
+                        # i to i and o to o
+                else:
+                    mapping.append(themap[values[1][h]])
+            else:
+                if values[1][h]=='M':
+                    if iM==True:
+                        mapping.append('1')
+                    if iM==False:
+                        mapping.append('3')
+                else:
+                    mapping.append(themap[values[1][h]])
+        data[keys] = (values[0], "".join(mapping))
+    return data
 
-themap = {'i': '0', 'o': '2'}
-
-print trainingdata['5H2A_CRIGR'][1]
-
-trans4 = [[0 for j in range(4)] for i in range(4)]
-for keys, values in trainingdata.items():
-    mapping = []
-    for h in range(len(values[1])-1):
-        # from i to M
-        if values[1][h] == 'i' and values[1][h+1] == 'M':
-            mapping.append('0')
-            iM = True
-        # from o to M
-        elif values[1][h] == 'o' and values[1][h+1] == 'M':
-            mapping.append('2')
-            iM = False
-        # M to M
-        elif values[1][h] == 'M' and values[1][h+1] == 'M':
-            if iM==True:
-                mapping.append('1')
-            if iM==False:
-                mapping.append('3')
-        # M to i or o
-        elif values[1][h] == 'M' and row[values[1][h+1]] != 'M':
-            if iM==True:
-                mapping.append('1')
-            if iM==False:
-                mapping.append('3')
-        # i to i and o to o
-        else:
-            mapping.append(themap[values[1][h]])
-    trainingdata[keys] = (values[0], "".join(mapping))
-
-print trainingdata['5H2A_CRIGR'][1]
-
-for values in trainingdata.values():
-    for h in range(len(values[1])-1):
-       trans4[int(values[1][h])][int(values[1][h+1])] += 1
-
-#print trainingdata['CVAA_ECOLI']
-#print '\nTransmission for 4 state model'
-#for i in trans4:
-  #  print i
-
-# emissions for 4 statements:
-# emissions: I M O
-emis4 = [[0 for j in range(20)] for i in range(4)]
-for values in trainingdata.values():
-    em = []
-    for j in zip(values[0], values[1]): 
-        em.append(j) 
-    for i in range(len(em)-1):
-        emis4[int(em[i][1])][col[em[i][0]]] += 1 
-
-print '\nModel 2 - 4 states: \n'
-print pi
-print trans4
-print emis4
+state3 = {'i': 0, 'M': 1, 'o': 2}
+obsdict = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
 
 d2 = {}
 d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
 d2['hidden'] = ['i', 'M', 'o']
-d2['pi'] = pi
-d2['transitions'] = transition
-d2['emissions'] = emission
+d2['pi'] = countPriori(trainingdata, ['i', 'M', 'o'])
+d2['transitions'] = countTransitions(trainingdata, state3)
+d2['emissions'] = countEmissions(trainingdata, state3, obsdict)
 hmm = HMMObject(d2, True)
 print hmm
-# Normalizing trans by col
-for i in range(0,3):
-    summ = np.sum(hmm.trans[i,:])   
-    hmm.trans[i,:] = hmm.trans[i,:]/float(summ)
-#print hmm.trans
 
-# Normalizing emis by row
-for i in range(0,3):
-    summ = np.sum(hmm.emi[i,:])    
-    hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
-#print hmm.emi
+def normalize(hmm):
+    for i in range(0,hmm.trans.shape[0]):
+        summ = np.sum(hmm.trans[i,:])   
+        hmm.trans[i,:] = hmm.trans[i,:]/float(summ)
+
+    for i in range(0,hmm.emi.shape[0]):
+        summ = np.sum(hmm.emi[i,:])    
+        hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
+
+    return hmm
+
+hmm = normalize(hmm)
 
 print hmm
 
-velog = np.vectorize(elog)
+def logtransform(hmm):
+    velog = np.vectorize(elog)
 
-hmm.emi = velog(hmm.emi)
-hmm.trans = velog(hmm.trans)
-hmm.pi = velog(hmm.pi)
+    hmm.emi = velog(hmm.emi)
+    hmm.trans = velog(hmm.trans)
+    hmm.pi = velog(hmm.pi)
+
+    return hmm
+
+hmm = logtransform(hmm)
 
 print hmm
 
@@ -170,31 +150,24 @@ import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
 
+state4 = {'0': 0, '1': 1, '2': 2, '3': 3}
+trainingdata = map4state(trainingdata)
+
 d4 = {}
 d4['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
 d4['hidden'] = ['0', '1', '2', '3']
-d4['pi'] = countpriori(trainingdata, ['0', '1', '2', '3'])
-d4['transitions'] = trans4
-d4['emissions'] = emis4
+d4['pi'] = countPriori(trainingdata, ['0', '1', '2', '3'])
+d4['transitions'] = countTransitions(trainingdata, state4)
+d4['emissions'] = countEmissions(trainingdata, state4, obsdict)
 hmm4 = HMMObject(d4, True, {'0': 'i', '1': 'M', '2': 'o', '3': 'M'})
 
 print hmm4
 
-for i in range(0,4):
-    summ = np.sum(hmm4.trans[i,:])   
-    hmm4.trans[i,:] = hmm4.trans[i,:]/float(summ)
-#print hmm.trans
-
-# Normalizing emis by row
-for i in range(0,4):
-    summ = np.sum(hmm4.emi[i,:])    
-    hmm4.emi[i,:] = hmm4.emi[i,:]/float(summ)
+hmm4 = normalize(hmm4)
 
 print hmm4
     
-hmm4.emi = velog(hmm4.emi)
-hmm4.trans = velog(hmm4.trans)
-hmm4.pi = velog(hmm4.pi)
+hmm4 = logtransform(hmm4)
 
 print hmm4
 
