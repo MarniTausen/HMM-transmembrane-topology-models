@@ -1,6 +1,6 @@
 from numpy import matrix
 import numpy as np
-
+from cross_validation import *
 from HMMdecoding import *
 
 # Printing out the hidden states + observations + loglikehood
@@ -188,6 +188,63 @@ file.write(output)
 file.close()
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
+
+# Cross Validation
+
+files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
+         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
+         "Dataset160/set160.8.labels.txt", "Dataset160/set160.9.labels.txt"]
+testing =[]
+train = []
+cv = []
+testingdata = {}
+state3 = {'i': 0, 'M': 1, 'o': 2}
+obsdict = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
+for j in range(0,10):
+    train = files[:j] + files[j+1:]
+    testing = files[j]
+    trainingdata = {}
+    for i in train:
+        for k, v in loadseq(i).items():
+            trainingdata[k] = v
+            sequences[k] = v[0]  ##########################!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    d2 = {}
+    d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+    d2['hidden'] = ['i', 'M', 'o']
+    d2['pi'] = countPriori(trainingdata, ['i', 'M', 'o'])
+    d2['transitions'] = countTransitions(trainingdata, state3)
+    d2['emissions'] = countEmissions(trainingdata, state3, obsdict)
+    hmm = HMMObject(d2, True)
+    hmm = normalize(hmm)
+    hmm = logtransform(hmm)
+
+    test = loadseq(testing)
+    #print hmm
+    output = ""
+    for k in test:
+        temp_viterbi = Viterbi(test[k][0], hmm)
+        output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, test[k][0], temp_viterbi, loglikelihood((test[k][0], temp_viterbi), hmm))
+    file = open('output_testing.txt', "w")
+    file.write(output)
+    file.close()
+
+    cv.append(cross_validation(testing, 'output_testing.txt'))
+
+print cv
+summs = 0
+for i in range(len(cv)):
+    print cv[i][3]
+    summs += cv[i][3]
+means = summs/len(cv)
+
+var = 0
+for i in range(len(cv)):
+    var += (cv[i][3] - means)**2
+var = var/float(len(cv))
+print means
+print var
+#print testingdata
+
 
 
 # Comparing - validation approach for 1 set of the data
