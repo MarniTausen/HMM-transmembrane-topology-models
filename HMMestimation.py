@@ -21,28 +21,28 @@ for i in files:
         trainingdata[k] = v
         sequences[k] = v[0] # To be used in the Viterbi algorithm 
 
+def countpriori(data, states):
+    priori = []
+    for values in data.values():
+        priori.append(values[1][0])
+    priori = ''.join(priori)
+    counts = [priori.count(i)/float(len(priori)) for i in states]
+    return counts
 
-#priori values 
-priori = []
-for values in trainingdata.values():
-    priori.append(values[1][0])
-    #print len(set(values[0]))
+pi = countpriori(trainingdata, ['i', 'M', 'o'])
 
-priori = ''.join(priori)
-i = priori.count('o')/float(len(priori))
-o = priori.count('i')/float(len(priori))
-print i+o
-pi = [i, 0, o] # i M o
+def countemissions(data, states, obs):
+    emission = [[0 for j in range(len(obs))] for i in range(len(states))]
+    for values in data.values():
+        for o, s in zip(values[0], values[1]): #hidden states
+            emission[row[s]][col[o]] += 1
+    return emission
 
 row = {'i': 0, 'M': 1, 'o': 2}
 col = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
-# emissions: I M O
-emission = [[0 for j in range(20)] for i in range(3)]
-print emission 
-for values in trainingdata.values():
-    for o, s in zip(values[0], values[1]): #hidden states
-        emission[row[s]][col[o]] += 1
 
+emission = countemissions(trainingdata, row, col)
+        
 # transitions
 row = {'i': 0, 'M': 1, 'o': 2, 'x': 3}
 transition = [[0 for j in range(3)] for i in range(3)]
@@ -173,7 +173,7 @@ os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.
 d4 = {}
 d4['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
 d4['hidden'] = ['0', '1', '2', '3']
-d4['pi'] = pi+[0]
+d4['pi'] = countpriori(trainingdata, ['0', '1', '2', '3'])
 d4['transitions'] = trans4
 d4['emissions'] = emis4
 hmm4 = HMMObject(d4, True, {'0': 'i', '1': 'M', '2': 'o', '3': 'M'})
