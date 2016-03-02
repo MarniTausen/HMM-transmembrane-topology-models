@@ -2,6 +2,7 @@ from numpy import matrix
 import numpy as np
 from cross_validation import *
 from HMMdecoding import *
+from Manystatesmodel import *
 
 # Printing out the hidden states + observations + loglikehood
 print 'Viterbi decoding output' 
@@ -101,11 +102,15 @@ print hmm
 
 def normalize(hmm):
     for i in range(0,hmm.trans.shape[0]):
-        summ = np.sum(hmm.trans[i,:])   
+        summ = np.sum(hmm.trans[i,:])
+        if summ==0:
+            continue
         hmm.trans[i,:] = hmm.trans[i,:]/float(summ)
 
     for i in range(0,hmm.emi.shape[0]):
-        summ = np.sum(hmm.emi[i,:])    
+        summ = np.sum(hmm.emi[i,:])
+        if summ==0:
+            continue
         hmm.emi[i,:] = hmm.emi[i,:]/float(summ)
 
     return hmm
@@ -179,6 +184,8 @@ def convertback(z, hmm):
         r += hmm.mapper[i]
     return r
 
+set9 = map4state(set9)
+
 for k in set9:
     temp_viterbi = Viterbi(set9[k][0], hmm4)
     output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], convertback(temp_viterbi, hmm4),
@@ -233,7 +240,6 @@ for j in range(0,10):
 print cv
 summs = 0
 for i in range(len(cv)):
-    print cv[i][3]
     summs += cv[i][3]
 means = summs/len(cv)
 
@@ -241,11 +247,114 @@ var = 0
 for i in range(len(cv)):
     var += (cv[i][3] - means)**2
 var = var/float(len(cv))
+print 'Mean of AC'
 print means
+print 'Variance of AC'
 print var
 #print testingdata
 
 
+
+
+
+
+
+
+## 73-state model.
+
+files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
+         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
+         "Dataset160/set160.8.labels.txt"]
+
+trainingdata = {}
+sequences = {}
+for i in files:
+    for k, v in loadseq(i).items():
+        trainingdata[k] = v
+        sequences[k] = v[0]
+
+trainingdata = TMHmapping(trainingdata)
+
+TMHstates = {str(i):i for i in range(73)}
+TMHmap = {'0': 'i', '36': 'o'}
+for i in range(1, 36)+range(37, 73):
+    TMHmap[str(i)] = 'M'
+
+dTMH = {}
+dTMH['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+dTMH['hidden'] = [str(i) for i in range(73)]
+dTMH['pi'] = countPriori(trainingdata, [str(i) for i in range(73)])
+dTMH['transitions'] = countTransitions(trainingdata, TMHstates)
+dTMH['emissions'] = countEmissions(trainingdata, TMHstates, obsdict)
+hmmTMH = HMMObject(dTMH, True, TMHmap)
+
+hmmTMH = normalize(hmmTMH)
+hmmTMH = logtransform(hmmTMH)
+
+set9 = loadseq("Dataset160/set160.9.labels.txt")
+set9 = TMHmapping(set9)
+
+for k in set9:
+    temp_viterbi = Viterbi(set9[k][0], hmmTMH)
+    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], convertback(temp_viterbi, hmmTMH),
+                                                         loglikelihood((set9[k][0], temp_viterbi), hmmTMH))
+file = open('output_set9_hmmTMH.txt', "w")
+file.write(output)
+file.close()
+
+os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmmTMH.txt")
+
+
+# for j in range(0,10):
+#     train = files[:j] + files[j+1:]
+#     testing = files[j]
+#     trainingdata = {}
+#     for i in train:
+#         for k, v in loadseq(i).items():
+#             trainingdata[k] = v
+#             sequences[k] = v[0]  ##########################!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#     trainingdata = TMHmapping(trainingdata)
+#     TMHstates = {str(i):i for i in range(73)}
+#     TMHmap = {'0': 'i', '36': 'o'}
+#     for i in range(1, 36)+range(37, 73):
+#         TMHmap[str(i)] = 'M'
+#     dTMH = {}
+#     dTMH['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+#     dTMH['hidden'] = [str(i) for i in range(73)]
+#     dTMH['pi'] = countPriori(trainingdata, [str(i) for i in range(73)])
+#     dTMH['transitions'] = countTransitions(trainingdata, TMHstates)
+#     dTMH['emissions'] = countEmissions(trainingdata, TMHstates, obsdict)
+#     hmm = HMMObject(dTMH, True, TMHmap)
+
+#     hmm = normalize(hmm)
+#     hmm = logtransform(hmm)
+    
+#     test = loadseq(testing)
+#     test = TMHmapping(test)
+#     #print hmm
+#     output = ""
+#     for k in test:
+#         temp_viterbi = Viterbi(test[k][0], hmm)
+#         output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, test[k][0], convertback(temp_viterbi, hmm), loglikelihood((test[k][0], temp_viterbi), hmm))
+#     file = open('output_testing.txt', "w")
+#     file.write(output)
+#     file.close()
+
+#     cv.append(cross_validation(testing, 'output_testing.txt'))
+
+# summs = 0
+# for i in range(len(cv)):
+#     summs += cv[i][3]
+# means = summs/len(cv)
+
+# var = 0
+# for i in range(len(cv)):
+#     var += (cv[i][3] - means)**2
+# var = var/float(len(cv))
+# print 'Mean of AC'
+# print means
+# print 'Variance of AC'
+# print var
 
 # Comparing - validation approach for 1 set of the data
  # python compare_tm_pred.py set160.0.labels.txt output_viterbi.txt 

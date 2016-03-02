@@ -1,23 +1,3 @@
-from numpy import matrix
-import numpy as np
-
-from HMMdecoding import *
-
-files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
-         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
-         "Dataset160/set160.8.labels.txt"]
-
-trainingdata = {}
-sequences = {}
-for i in files:
-    for k, v in loadseq(i).items():
-        trainingdata[k] = v
-        sequences[k] = v[0]
-
-######################################
-## States: i (0) iM (1-35) o (36) oM (37-72)
-
-
 # Count the length of the occurrence of the search term. 
 def countCluster(string, s, p):
     c = 0
@@ -79,18 +59,3 @@ def TMHmapping(data):
                     result += labelMembrane(i[1], False)
         data[keys] = (values[0], result)
     return data
-
-print trainingdata["HOXN_ALCEU"][1]
-
-trainingdata = TMHmapping(trainingdata)
-
-def convertBack(seq):
-    mapper = {'0': 'i', '36': 'o'}
-    r = ""
-    for i in seq:
-        r += mapper.get(i, 'M')
-    return r
-
-print convertBack(trainingdata["HOXN_ALCEU"][1])
-
-print trainingdata["HOXN_ALCEU"][1]
