@@ -1,0 +1,59 @@
+from numpy import matrix
+import numpy as np
+
+from HMMdecoding import *
+
+files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
+         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
+         "Dataset160/set160.8.labels.txt"]
+
+trainingdata = {}
+sequences = {}
+for i in files:
+    for k, v in loadseq(i).items():
+        trainingdata[k] = v
+        sequences[k] = v[0]
+
+######################################
+## States: i (0) iM (1-35) o (36) oM (37-72)
+
+
+# Count the length of the occurrence of the search term. 
+def countCluster(string, s, p):
+    c = p
+    for i in string[p:]:
+        if i==s: c += 1
+        else: break
+    return c
+
+def TMHmapping(data):
+    #Define the initial variables
+    
+    # Iterate through the data
+    ## Use a while loop to keep it O(n) for each of the sequences.
+    ### For each occurrence of M count how many times it occurs and skip ahead of the M.
+    ### Assign the correct states for the Ms.
+
+    for keys, values in data.items():
+        i = 0
+        mapping = []
+        while i < len(values[1]):
+            if values[1][i] == 'i':
+                clen = countCluster(values[1], 'i', i)
+                mapping.append(('i', clen-i))
+                i += clen-1
+                continue
+            if values[1][i] == 'o':
+                clen = countCluster(values[1], 'o', i)
+                mapping.append(('o', clen-i))
+                i += clen-1
+                continue
+            if values[1][i] == 'M':
+                clen = countCluster(values[1], 'M', i)
+                mapping.append(('M', clen-i))
+                i += clen-1
+                continue
+        print values[1], mapping
+
+TMHmapping(trainingdata)
+    
