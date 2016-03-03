@@ -5,10 +5,6 @@ from HMMdecoding import *
 
 # Printing out the hidden states + observations + loglikehood
 print 'Viterbi decoding output' 
-#for key in sorted(sequences):
- #   temp_viterbi = Viterbi(sequences[key], hmm)
-  #  print'>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (key, sequences[key], temp_viterbi, loglikelihood((sequences[key], temp_viterbi), hmm))
-
 
 files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
          "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
@@ -116,7 +112,6 @@ print hmm
 
 def logtransform(hmm):
     velog = np.vectorize(elog)
-
     hmm.emi = velog(hmm.emi)
     hmm.trans = velog(hmm.trans)
     hmm.pi = velog(hmm.pi)
@@ -137,15 +132,17 @@ file.close()
 
 set9 = loadseq("Dataset160/set160.9.labels.txt")
 
-output = ""
+# change the files??????????????
+def decoding_save(algorithm, sets, hmm):
+    output = ""
+    for k in sets:
+        temp_viterbi = algorithm(sets[k][0], hmm)
+        output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, sets[k][0], temp_viterbi, loglikelihood((sets[k][0], temp_viterbi), hmm))
+    file = open('output_set9.txt', "w")
+    file.write(output)
+    file.close()
 
-for k in set9:
-    temp_viterbi = Viterbi(set9[k][0], hmm)
-    output += '>%s \n%s \n#\n%s\n; log P(x,z) = %f\n' % (k, set9[k][0], temp_viterbi, loglikelihood((set9[k][0], temp_viterbi), hmm))
-file = open('output_set9.txt', "w")
-file.write(output)
-file.close()
-
+decoding_save(Viterbi, set9, hmm)
 import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
@@ -189,7 +186,7 @@ file.close()
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmm4.txt")
 
-# Cross Validation
+# Cross Validation for 3 states
 
 files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
          "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
@@ -207,7 +204,6 @@ for j in range(0,10):
     for i in train:
         for k, v in loadseq(i).items():
             trainingdata[k] = v
-            sequences[k] = v[0]  ##########################!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     d2 = {}
     d2['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
     d2['hidden'] = ['i', 'M', 'o']
@@ -231,22 +227,59 @@ for j in range(0,10):
     cv.append(cross_validation(testing, 'output_testing.txt'))
 
 print cv
-summs = 0
-for i in range(len(cv)):
-    print cv[i][3]
-    summs += cv[i][3]
-means = summs/len(cv)
 
-var = 0
-for i in range(len(cv)):
-    var += (cv[i][3] - means)**2
-var = var/float(len(cv))
-print means
-print var
+def mean(cv):
+    summs = 0
+    means = 0
+    for i in range(len(cv)):
+        print cv[i][3]
+        summs += cv[i][3]
+    means = summs/len(cv)
+    return means
+
+def var(cv, mean):
+    var = 0
+    for i in range(len(cv)):
+        var += (cv[i][3] - mean)**2
+    var = var/float(len(cv))
+    return var
+
+print 'The mean of the cross validation (3 states) AC results is:'
+mean3 = mean(cv)
+print 'The variance of the cross validation (3 states) AC results is:'
+print var(cv, mean3)
 #print testingdata
 
+# Cross validation for 4 states
+cv4 = []
+for j in range(0,10):
+    train = files[:j] + files[j+1:]
+    testing = files[j]
+    trainingdata = {}
+    for i in train:
+        for k, v in loadseq(i).items():
+            trainingdata[k] = v
+    
+    trainingdata = map4state(trainingdata)
 
+    state4 = {'0': 0, '1': 1, '2': 2, '3': 3}
+    d4 = {}
+    d4['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+    d4['hidden'] = ['0', '1', '2', '3']
+    d4['pi'] = countPriori(trainingdata, ['0', '1', '2', '3'])
+    d4['transitions'] = countTransitions(trainingdata, state4)
+    d4['emissions'] = countEmissions(trainingdata, state4, obsdict)
+    hmm4 = HMMObject(d4, True, {'0': 'i', '1': 'M', '2': 'o', '3': 'M'})
 
+    test = loadseq(testing)
+    decoding_save(Viterbi, test)
+    cv4.append(cross_validation(testing, 'output_testing.txt'))
+
+print 'The mean of the cross validation (4 states) AC results is:'
+mean4 = mean(cv4)
+print mean4
+print 'The variance of the cross validation (4 states) AC results is:'
+print var(cv4, mean4)
 # Comparing - validation approach for 1 set of the data
  # python compare_tm_pred.py set160.0.labels.txt output_viterbi.txt 
 
