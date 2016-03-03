@@ -132,7 +132,6 @@ file.close()
 
 set9 = loadseq("Dataset160/set160.9.labels.txt")
 
-# change the files??????????????
 def decoding_save(algorithm, sets, hmm):
     output = ""
     for k in sets:
