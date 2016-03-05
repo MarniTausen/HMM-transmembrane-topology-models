@@ -226,12 +226,12 @@ def CV3state(files, decoding=Viterbi):
         cv.append(cross_validation(testing, 'output_testing.txt'))
     return cv
 
-def mean(cv):
+def mean(cv,p=3):
     summs = []
     means = 0
     for i in range(len(cv)):
-        if cv[i][3]!=float('inf'):
-            summs += [cv[i][3]]
+        if cv[i][p]!=float('inf'):
+            summs += [cv[i][p]]
     means = sum(summs)/len(summs)
     return means
 
@@ -242,9 +242,12 @@ def var(cv, mean):
     var = var/float(len(cv))
     return var
 
+print '--------CV 3 states Viterbi--------'
 cv = CV3state(files)
 
-print 'The mean of the cross validation (3 states) AC results is:'
+print 'The mean of the cross validation (3 states) Sn results is %f:' %( mean(cv, p=0))
+print 'The mean of the cross validation (3 states) Sp results is %f:' %( mean(cv, p=1))
+print 'The mean of the cross validation (3 states) Ac results is:'
 mean3 = mean(cv)
 print mean3
 print 'The variance of the cross validation (3 states) AC results is:'
@@ -281,9 +284,11 @@ def CV4state(files, decoding=Viterbi):
         cv4.append(cross_validation(testing, 'output_testing.txt'))
     return cv4
 
+print '--------CV 4 states Viterbi--------'
 cv4 = CV4state(files)
 
-print
+print 'The mean of the cross validation (4 states) Sn results is %f:' %( mean(cv4, p=0))
+print 'The mean of the cross validation (4 states) Sp results is %f:' %( mean(cv4, p=1))
 print 'The mean of the cross validation (4 states) AC results is:'
 mean4 = mean(cv4)
 print mean4
@@ -294,18 +299,24 @@ print
 print "Results using Posterior decoding instead of Viterbi:"
 print
 
+print '--------CV 3 states Posterior--------'
 cv3 = CV3state(files, Posterior)
 
 print
+print 'The mean of the cross validation (3 states) Sn results is %f:' %( mean(cv3, p=0))
+print 'The mean of the cross validation (3 states) Sp results is %f:' %( mean(cv3, p=1))
 print 'The mean of the cross validation (3 states) AC results is:'
 mean3 = mean(cv3)
 print mean3
 print 'The variance of the cross validation (3 states) AC results is:'
 print var(cv3, mean3)
 
+print '--------CV 4 states Posterior--------'
 cv4 = CV4state(files, Posterior)
 
 print
+print 'The mean of the cross validation (4 states) Sn results is %f:' %( mean(cv4, p=0))
+print 'The mean of the cross validation (4 states) Sp results is %f:' %( mean(cv4, p=1))
 print 'The mean of the cross validation (4 states) AC results is:'
 mean4 = mean(cv4)
 print mean4
@@ -380,9 +391,8 @@ def CVTMHstate(files, decoding=Viterbi):
     return cv
 
 
-print
-print 'Results of the 73-state model:'
-print
+
+print '\nResults of the 73-state model:\n'
 
 print 'Viterbi'
 
@@ -392,6 +402,8 @@ print
 print 'The mean of the cross validation (4 states) AC results is:'
 themean = mean(cv)
 print themean
+print 'The mean of the cross validation (4 states) Sn results is %f:' %( mean(cv, p=0))
+print 'The mean of the cross validation (4 states) Sp results is %f:' %( mean(cv, p=1))
 print 'The variance of the cross validation (4 states) AC results is:'
 print var(cv, themean)
 
