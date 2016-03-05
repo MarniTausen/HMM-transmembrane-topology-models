@@ -129,16 +129,20 @@ def loglikelihood(seqpair, HMM):
 
     return result
 
-def Viterbi(seq, hmm):
+def Viterbi(seq, hmm, prob=False):
     # Initialize the omega table
     N = len(seq)
     M = np.zeros((len(hmm.states), N))
     M.fill(float("-inf"))
 
+    if prob==True:
+        P = np.zeros((len(hmm.states), N))
+    
     # Fill in the first column.
     for k in range(len(hmm.states)):
         M[k,0] = hmm.pi[k]+hmm.emi[k,hmm.obs[seq[0]]]
-
+        if prob==True: P[k,0] = eexp(hmm.pi[k]+hmm.emi[k,hmm.obs[seq[0]]])
+        
     # Fill in the remaining columns in the table.
     for n in range(1, N):
         o = hmm.obs[seq[n]]
@@ -147,6 +151,7 @@ def Viterbi(seq, hmm):
                 for j in hmm.states.values():
                     if hmm.trans[j,k]!=float("-inf"):
                         M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
+                        if prob==True: P[k,0] = max([P[k,n], eexp(hmm.emi[k,o]+hmm.trans[j,k]]))
     
     # Backtracking:
     z = ['' for i in range(len(seq))]
@@ -162,6 +167,9 @@ def Viterbi(seq, hmm):
                 z[n] = hmm.states.keys()[k]
                 break
 
+    if prob==True:
+        return P
+            
     if len(hmm.states)<10:
         return "".join(z)
     else:
