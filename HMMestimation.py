@@ -227,11 +227,12 @@ def CV3state(files, decoding=Viterbi):
     return cv
 
 def mean(cv):
-    summs = 0
+    summs = []
     means = 0
     for i in range(len(cv)):
-        summs += cv[i][3]
-    means = summs/len(cv)
+        if cv[i][3]!=float('inf'):
+            summs += [cv[i][3]]
+    means = sum(summs)/len(summs)
     return means
 
 def var(cv, mean):
@@ -355,7 +356,7 @@ def CVTMHstate(files, decoding=Viterbi):
             for k, v in loadseq(i).items():
                 trainingdata[k] = v
     
-        trainingdata = map4state(trainingdata)
+        trainingdata = TMHmapping(trainingdata)
 
         TMHstates = {str(i):i for i in range(73)}
         TMHmap = {'0': 'i', '36': 'o'}
