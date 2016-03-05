@@ -302,7 +302,6 @@ print mean3
 print 'The variance of the cross validation (3 states) AC results is:'
 print var(cv3, mean3)
 
-
 cv4 = CV4state(files, Posterior)
 
 print
@@ -311,10 +310,6 @@ mean4 = mean(cv4)
 print mean4
 print 'The variance of the cross validation (4 states) AC results is:'
 print var(cv4, mean4)
-
-files = ["Dataset160/set160.0.labels.txt", "Dataset160/set160.1.labels.txt", "Dataset160/set160.2.labels.txt", "Dataset160/set160.3.labels.txt",
-         "Dataset160/set160.4.labels.txt", "Dataset160/set160.5.labels.txt", "Dataset160/set160.6.labels.txt", "Dataset160/set160.7.labels.txt",
-         "Dataset160/set160.8.labels.txt"]
 
 ## 73-state model.
 
@@ -346,10 +341,70 @@ hmmTMH = logtransform(hmmTMH)
 set9 = loadseq("Dataset160/set160.9.labels.txt")
 set9 = TMHmapping(set9)
 
-decoding_save(Posterior, set9, hmmTMH, 'output_set9_hmmTMH.txt', True)
+decoding_save(Viterbi, set9, hmmTMH, 'output_set9_hmmTMH.txt', True)
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9_hmmTMH.txt")
 
+def CVTMHstate(files, decoding=Viterbi):
+    cv = []
+    for j in range(0,10):
+        train = files[:j] + files[j+1:]
+        testing = files[j]
+        trainingdata = {}
+        for i in train:
+            for k, v in loadseq(i).items():
+                trainingdata[k] = v
+    
+        trainingdata = map4state(trainingdata)
+
+        TMHstates = {str(i):i for i in range(73)}
+        TMHmap = {'0': 'i', '36': 'o'}
+        for i in range(1, 36)+range(37, 73):
+            TMHmap[str(i)] = 'M'
+        
+        dTMH = {}
+        dTMH['observables'] = ['A', 'C', 'E', 'D', 'G', 'F', 'I','H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y'] 
+        dTMH['hidden'] = [str(i) for i in range(73)]
+        dTMH['pi'] = countPriori(trainingdata, [str(i) for i in range(73)])
+        dTMH['transitions'] = countTransitions(trainingdata, TMHstates)
+        dTMH['emissions'] = countEmissions(trainingdata, TMHstates, obsdict)
+        hmmTMH = HMMObject(dTMH, True, TMHmap)
+
+        hmmTMH = normalize(hmmTMH)
+        hmmTMH = logtransform(hmmTMH)
+
+        test = loadseq(testing)
+        decoding_save(decoding, test, hmmTMH, 'output_testing.txt', True)
+        cv.append(cross_validation(testing, 'output_testing.txt'))
+    return cv
+
+
+print
+print 'Results of the 73-state model:'
+print
+
+print 'Viterbi'
+
+cv = CVTMHstate(files)
+
+print
+print 'The mean of the cross validation (4 states) AC results is:'
+themean = mean(cv)
+print themean
+print 'The variance of the cross validation (4 states) AC results is:'
+print var(cv, themean)
+
+print
+print 'Posterior'
+
+cv = CVTMHstate(files, Posterior)
+
+print
+print 'The mean of the cross validation (4 states) AC results is:'
+themean = mean(cv)
+print themean
+print 'The variance of the cross validation (4 states) AC results is:'
+print var(cv, themean)
 
 
 # Comparing - validation approach for 1 set of the data

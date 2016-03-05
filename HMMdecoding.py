@@ -161,8 +161,11 @@ def Viterbi(seq, hmm):
             if M[k,n]+hmm.emi[ns,o]+hmm.trans[k, ns] == M[ns, n+1]:
                 z[n] = hmm.states.keys()[k]
                 break
-    
-    return "".join(z)
+
+    if len(hmm.states)<10:
+        return "".join(z)
+    else:
+        return z
 
 ##################### Starting Posterior decoding #####################
 
@@ -220,4 +223,7 @@ def Posterior(seq, hmm):
     for n in range(N):
         z[n] = hmm.states.keys()[M[:,n].argmax()]
 
-    return "".join(z)
+    if len(hmm.states)<10:
+        return "".join(z)
+    else:
+        return z
