@@ -84,6 +84,10 @@ def map4state(data):
         data[keys] = (values[0], "".join(mapping))
     return data
 
+set9 = loadseq("comparing.txt")
+
+print comparing(set9)
+
 state3 = {'i': 0, 'M': 1, 'o': 2}
 obsdict = {'A': 0, 'C': 1, 'E': 2, 'D': 3, 'G': 4, 'F': 5, 'I': 6, 'H': 7, 'K': 8, 'M': 9, 'L': 10, 'N': 11, 'Q': 12, 'P': 13, 'S': 14, 'R': 15, 'T': 16, 'W': 17, 'V': 18, 'Y': 19}
 
@@ -389,8 +393,6 @@ def CVTMHstate(files, decoding=Viterbi):
         decoding_save(decoding, test, hmmTMH, 'output_testing.txt', True)
         cv.append(cross_validation(testing, 'output_testing.txt'))
     return cv
-
-
 
 print '\nResults of the 73-state model:\n'
 

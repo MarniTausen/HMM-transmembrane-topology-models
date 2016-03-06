@@ -80,8 +80,6 @@ def TMHmapping(data):
         data[keys] = (values[0], result)
     return data
 
-print trainingdata["HOXN_ALCEU"][1]
-
 trainingdata = TMHmapping(trainingdata)
 
 def convertBack(seq):
@@ -91,6 +89,27 @@ def convertBack(seq):
         r += mapper.get(i, 'M')
     return r
 
-print convertBack(trainingdata["HOXN_ALCEU"][1])
-
-print trainingdata["HOXN_ALCEU"][1]
+def comparing(data):
+    iM = False
+    result = {}
+    for keys, values in data.items():
+        i = 0
+        mapping = []
+        while i < len(values[1]):
+            if values[1][i] == 'i':
+                clen = countCluster(values[1], 'i', i)
+                mapping.append(('i', i+1, clen+i))
+                i += clen
+                continue
+            if values[1][i] == 'o':
+                clen = countCluster(values[1], 'o', i)
+                mapping.append(('o', i+1, clen+i))
+                i += clen
+                continue
+            if values[1][i] == 'M':
+                clen = countCluster(values[1], 'M', i)
+                mapping.append(('M', i+1, clen+i))
+                i += clen
+                continue
+        result[keys] = mapping
+    return result
