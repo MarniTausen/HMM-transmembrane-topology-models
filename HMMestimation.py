@@ -416,6 +416,8 @@ print
 print 'The mean of the cross validation (4 states) AC results is:'
 themean = mean(cv)
 print themean
+print 'The mean of the cross validation (4 states) Sn results is %f:' %( mean(cv, p=0))
+print 'The mean of the cross validation (4 states) Sp results is %f:' %( mean(cv, p=1))
 print 'The variance of the cross validation (4 states) AC results is:'
 print var(cv, themean)
 

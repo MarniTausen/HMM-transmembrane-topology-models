@@ -151,7 +151,7 @@ def Viterbi(seq, hmm, prob=False):
                 for j in hmm.states.values():
                     if hmm.trans[j,k]!=float("-inf"):
                         M[k,n] = max([M[k,n], M[j, n-1]+hmm.emi[k,o]+hmm.trans[j,k]])
-                        if prob==True: P[k,0] = max([P[k,n], eexp(hmm.emi[k,o]+hmm.trans[j,k]]))
+                        if prob==True: P[k,0] = max([P[k,n], eexp(hmm.emi[k,o]+hmm.trans[j,k])])
     
     # Backtracking:
     z = ['' for i in range(len(seq))]
