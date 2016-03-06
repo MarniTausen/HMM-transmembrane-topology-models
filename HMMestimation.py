@@ -151,6 +151,9 @@ def decoding_save(algorithm, sets, hmm, outfile, convert=False):
     file.close()
 
 decoding_save(Viterbi, set9, hmm, 'output_set9.txt')
+
+decoding_save(Posterior, set9, hmm, 'output_posterior.txt')
+
 import os
 
 os.system("python compare_tm_pred.py Dataset160/set160.9.labels.txt output_set9.txt")
